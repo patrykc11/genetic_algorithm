@@ -23,7 +23,7 @@ def load_distance_matrix(file_path):
 def calculate_route_length(route, distance_matrix):
     total_length = 0
     prev_city = route[0]
-    
+
     for city in route[1:]:
         if city >= prev_city:
           total_length += distance_matrix[city][prev_city]
@@ -33,7 +33,7 @@ def calculate_route_length(route, distance_matrix):
 
     if route[-1] >= route[0]:
       total_length += distance_matrix[route[-1]][route[0]]
-    else: 
+    else:
       total_length += distance_matrix[route[0]][route[-1]]
     return total_length
 
@@ -97,8 +97,11 @@ def genetic_algorithm(distance_matrix, population_size, tournament_size, crossov
     num_cities = len(distance_matrix)
     population = initialize_population(population_size, num_cities)
 
+    best_route = None
+    best_length = None
+
+    used_routes = []
     for generation in range(num_generations):
-        print(generation)
         selected_parents = tournament_selection(population, tournament_size)
 
         offspring = []
@@ -116,15 +119,30 @@ def genetic_algorithm(distance_matrix, population_size, tournament_size, crossov
 
         population = offspring
 
-    best_route = min(population, key=lambda x: calculate_route_length(x, distance_matrix))
-    best_length = calculate_route_length(best_route, distance_matrix)
+        route = min(population, key=lambda x: calculate_route_length(x, distance_matrix))
+
+        # if route in used_routes:
+        #     print("Powtórzenie trasy: ", route)
+
+        if best_route is None and best_length is None:
+            best_route = route
+            best_length = calculate_route_length(route, distance_matrix)
+        else:
+            length = calculate_route_length(route, distance_matrix)
+            if length < best_length:
+                best_route = route
+                best_length = length
+
+        used_routes.append(route)
+
+        print("Generacja: ", generation, "Najlepsza droga: ", best_length, "Trasa: ", route)
 
     return best_route, best_length
 
 if __name__ == "__main__":
     file_path = "berlin52.txt"
     distance_matrix = load_distance_matrix(file_path)
-    population_size = 100
+    population_size = 1000
     tournament_size = 5
     crossover_rate = 0.8
     mutation_rate_swap = 0.3
